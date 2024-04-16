@@ -19,7 +19,6 @@ function Feed() {
         }
 
         postsArray.length > 0 && setPostsList(postsArray as Array<Post>);
-        console.log("LISTA DE POSTS", postsList);
       }
     });
   };
