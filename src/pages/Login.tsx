@@ -1,6 +1,9 @@
 import { useState } from "react";
 import loginImg from "../assets/daniel-korpai-HyTwtsk8XqA-unsplash.jpg";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { auth } from "../firebase/firebaseConection";
 import { toast } from "react-toastify";
 import "react-toastify/ReactToastify.css";
@@ -50,7 +53,7 @@ function Login() {
     state(eventValue);
   };
 
-  const handleExecuteLogin = (
+  const handleExecuteLogin = async (
     event: React.MouseEvent<HTMLFormElement, MouseEvent>
   ) => {
     event.preventDefault();
@@ -58,6 +61,25 @@ function Login() {
     loginEmailInput.trim().length > 0 && loginPasswordInput.trim().length > 0
       ? setIsLoginFormValid(true)
       : setIsLoginFormValid(false);
+
+    await signInWithEmailAndPassword(auth, loginEmailInput, loginPasswordInput)
+      .then(() => {
+        toast.success("Bem vindo de volta");
+        setDisplayLogin(true);
+        setDisplaySignUp(false);
+        setIsLoading(false);
+      })
+      .catch((err: { code: string }) => {
+        setIsLoading(false);
+        if (err.code === "auth/wrong-password") {
+          toast.error("Senha incorreta!");
+        } else if (err.code === "auth/user-not-found") {
+          toast.error("Email não existe, crie sua conta!");
+        } else {
+          toast.error("Erro ao fazer login!");
+          setIsLoginFormValid(false);
+        }
+      });
 
     setLoginEmailInput("");
     setLoginPasswordInput("");
@@ -216,10 +238,11 @@ function Login() {
             </div>
             <div className="flex justify-center text-white py-2 hover:cursor-pointer hover:animate-pulse">
               <button
+                disabled={isLoading}
                 onClick={(event) => handleDisplayLogin(event)}
                 type="button"
               >
-                Fazer login
+                {isLoading ? "Carregando..." : "Fazer login"}
               </button>
             </div>
             {!isSignUpFormValid && erroAlert}
